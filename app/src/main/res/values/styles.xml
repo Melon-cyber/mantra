@@ -1,0 +1,8 @@
+<resources>
+    <color name="brand_background">#2A1822</color>
+    <style name="Theme.Mantra" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">#131014</item>
+        <item name="android:colorAccent">#FFA8C5</item>
+    </style>
+</resources>

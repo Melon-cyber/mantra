@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mantra mark: two stacked cards, the front one turning, with a repeat arc. 108dp adaptive canvas, safe zone 66dp. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#7A3D57" android:pathData="M40,30h30a4,4 0,0 1,4 4v34a4,4 0,0 1,-4 4h-30a4,4 0,0 1,-4 -4v-34a4,4 0,0 1,4 -4z" />
+    <path android:fillColor="#FFA8C5" android:pathData="M34,38h30a4,4 0,0 1,4 4v34a4,4 0,0 1,-4 4h-30a4,4 0,0 1,-4 -4v-34a4,4 0,0 1,4 -4z" />
+    <path android:strokeColor="#2A1822" android:strokeWidth="4" android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M58,52a9,9 0,1 0,-2 9" />
+    <path android:fillColor="#2A1822" android:pathData="M60,46l0,9l-8,-3z" />
+</vector>
