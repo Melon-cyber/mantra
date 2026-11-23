@@ -51,7 +51,15 @@ import app.mantra.cards.data.Deck
                 Text("  Ищем значения и примеры…", color = Muted, style = MaterialTheme.typography.bodySmall)
             }
             else -> {
-                l.meanings.take(3).forEach { m ->
+                if (deck.definitions && l.definitions.isNotEmpty()) l.definitions.take(4).forEach { d ->
+                    Column {
+                        Text(buildAnnotatedString {
+                            withStyle(SpanStyle(color = Accent, fontWeight = FontWeight.SemiBold)) { append(d.part + "  ") }
+                            append(d.text)
+                        }, style = MaterialTheme.typography.bodyMedium)
+                        if (d.example.isNotBlank()) Text(d.example, style = MaterialTheme.typography.bodySmall.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic), color = Muted)
+                    }
+                } else l.meanings.take(3).forEach { m ->
                     Text(buildAnnotatedString {
                         withStyle(SpanStyle(color = Accent, fontWeight = FontWeight.SemiBold)) { append(m.part + "  ") }
                         append(m.words.take(5).joinToString(", "))
@@ -64,10 +72,10 @@ import app.mantra.cards.data.Deck
                             Text(highlight(e.text, card.front), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                             Icon(Icons.AutoMirrored.Rounded.VolumeUp, "Произнести пример", tint = Muted, modifier = Modifier.padding(start = 6.dp).size(18.dp))
                         }
-                        if (e.translation.isNotBlank()) Text(e.translation, style = MaterialTheme.typography.bodySmall, color = Muted)
+                        if (e.translation.isNotBlank() && !deck.definitions) Text(e.translation, style = MaterialTheme.typography.bodySmall, color = Muted)
                     }
                 }
-                if (l.meanings.isEmpty() && l.examples.isEmpty()) Text("Для этого слова примеров не нашлось.", color = Muted, style = MaterialTheme.typography.bodySmall)
+                if (l.meanings.isEmpty() && l.examples.isEmpty() && l.definitions.isEmpty()) Text("Для этого слова примеров не нашлось.", color = Muted, style = MaterialTheme.typography.bodySmall)
             }
         }
     }

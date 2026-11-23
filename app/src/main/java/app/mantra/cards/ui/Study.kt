@@ -58,7 +58,8 @@ private val gradeColors = mapOf(Grade.AGAIN to Color(0xFFFF8A80), Grade.HARD to 
     var editing by remember { mutableStateOf<Card?>(null) }
     editing?.let { c -> CardEditor(c, close = { editing = null }, save = { saved, _ -> model.editedDuringStudy(model.saveCard(saved)); editing = null },
         delete = { model.deleteCard(c); editing = null; model.study(session.deckId) },
-        translate = state.decks.firstOrNull { it.id == c.deckId }?.let { d -> { text: String, set: (String) -> Unit -> model.translate(text, d) { it?.let(set) } } }) }
+        definitions = state.decks.firstOrNull { it.id == c.deckId }?.definitions ?: false,
+        suggest = state.decks.firstOrNull { it.id == c.deckId }?.let { d -> { text: String, done: (app.mantra.cards.data.Lookup?) -> Unit -> model.lookupWord(text, d, done) } }) }
     val deck = state.decks.firstOrNull { it.id == (card?.deckId ?: session.deckId) }
     val left = state.decks.filter { session.deckId == null || it.id == session.deckId }.sumOf { d -> model.counts(d).let { it.due + it.fresh + it.learning } }
 

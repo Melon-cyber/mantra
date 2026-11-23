@@ -75,6 +75,9 @@ import app.mantra.cards.data.CardState
 import app.mantra.cards.data.Deck
 import app.mantra.cards.data.EMOJIS
 import app.mantra.cards.data.Language
+import app.mantra.cards.data.Lookup
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import app.mantra.cards.data.Saved
 import app.mantra.cards.data.parseCards
 import app.mantra.cards.data.plural
@@ -94,7 +97,7 @@ import kotlinx.coroutines.launch
 
     cardEditor?.let { c -> CardEditor(c, close = { cardEditor = null }, save = { saved, again -> model.saveCard(saved); cardEditor = if (again) Card("", deck.id, "", "") else null },
         delete = if (c.id.isNotBlank()) ({ model.deleteCard(c); cardEditor = null }) else null,
-        translate = { text, set -> model.translate(text, deck) { it?.let(set) } }) }
+        definitions = deck.definitions, suggest = { text, done -> model.lookupWord(text, deck, done) }) }
     if (importing) ImportDialog(model, close = { importing = false }) { text -> model.addText(deck.id, text); importing = false }
     if (confirmDelete) AlertDialog(onDismissRequest = { confirmDelete = false }, title = { Text("Удалить «${deck.name}»?") },
         text = { Text("Пропадут все ${cards.size} ${plural(cards.size, "карточка", "карточки", "карточек")} и их прогресс.") },
@@ -169,10 +172,31 @@ import kotlinx.coroutines.launch
     }
 }
 
-@Composable fun CardEditor(start: Card, close: () -> Unit, save: (Card, Boolean) -> Unit, delete: (() -> Unit)?, translate: ((String, (String) -> Unit) -> Unit)? = null) {
+@Composable fun CardEditor(start: Card, close: () -> Unit, save: (Card, Boolean) -> Unit, delete: (() -> Unit)?,
+    definitions: Boolean = false, suggest: ((String, (Lookup?) -> Unit) -> Unit)? = null) {
     var front by remember(start) { mutableStateOf(start.front) }
     var back by remember(start) { mutableStateOf(start.back) }
     var note by remember(start) { mutableStateOf(start.note) }
+    var found by remember(start) { mutableStateOf<Lookup?>(null) }
+    var looking by remember(start) { mutableStateOf(false) }
+    var autoBack by remember(start) { mutableStateOf(start.back.isBlank()) }
+    var autoNote by remember(start) { mutableStateOf(start.note.isBlank()) }
+    // While typing a word, look it up after a short pause and fill what is still empty.
+    LaunchedEffect(front) {
+        if (suggest == null || front.isBlank() || front == start.front && start.id.isNotBlank()) return@LaunchedEffect
+        delay(700)
+        looking = true
+        val word = front
+        suggest(word) { l ->
+            looking = false
+            if (front != word) return@suggest
+            found = l
+            if (l != null) {
+                if (autoBack || back.isBlank()) { back = l.answer(definitions); autoBack = true }
+                if (autoNote || note.isBlank()) { note = l.exampleNote(definitions); autoNote = true }
+            }
+        }
+    }
     val isNew = start.id.isBlank()
     val ok = front.isNotBlank() && back.isNotBlank()
     AlertDialog(onDismissRequest = close, title = { Text(if (isNew) "Новая карточка" else "Карточка") },
@@ -180,10 +204,13 @@ import kotlinx.coroutines.launch
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(front, { front = it.take(500) }, label = { Text("Вопрос или слово") }, modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences))
-                OutlinedTextField(back, { back = it.take(1000) }, label = { Text("Ответ или перевод") }, modifier = Modifier.fillMaxWidth(),
+                OutlinedTextField(back, { back = it.take(1000); autoBack = false }, label = { Text(if (definitions) "Определение" else "Перевод или ответ") }, modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    trailingIcon = if (translate != null && front.isNotBlank()) ({ IconButton(onClick = { translate(front) { back = it } }) { Icon(Icons.Rounded.Translate, "Перевести") } }) else null)
-                OutlinedTextField(note, { note = it.take(1000) }, label = { Text("Пример или подсказка (необязательно)") }, modifier = Modifier.fillMaxWidth().heightIn(min = 80.dp))
+                    trailingIcon = if (suggest != null && front.isNotBlank()) ({ IconButton(onClick = { looking = true; suggest(front) { l -> looking = false; found = l; l?.let { back = it.answer(definitions); autoBack = true } } }) {
+                        Icon(Icons.Rounded.Translate, if (definitions) "Найти определение" else "Перевести") } }) else null)
+                OutlinedTextField(note, { note = it.take(1000); autoNote = false }, label = { Text("Пример или подсказка (необязательно)") }, modifier = Modifier.fillMaxWidth().heightIn(min = 80.dp))
+                if (looking) Text(if (definitions) "Ищем определение и примеры…" else "Ищем перевод и примеры…", color = Muted, style = MaterialTheme.typography.bodySmall)
+                found?.let { l -> Suggestions(l, definitions, pickAnswer = { back = it; autoBack = false }, pickNote = { note = it; autoNote = false }) }
                 if (isNew) TextButton(onClick = { save(start.copy(front = front, back = back, note = note), true) }, enabled = ok) { Text("Сохранить и добавить ещё") }
                 if (delete != null) TextButton(onClick = delete) { Text("Удалить карточку", color = Color(0xFFFF8A80)) }
             }
@@ -237,6 +264,13 @@ import kotlinx.coroutines.launch
                         FilterChip(d.language == l.name, { d = d.copy(language = l.name) }, label = { Text(l.label) },
                             colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Accent, selectedLabelColor = Ink))
                     }
+                }
+                Text("Ответ на карточке", style = MaterialTheme.typography.titleSmall)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FilterChip(d.answer != "DEFINITION", { d = d.copy(answer = "TRANSLATION") }, label = { Text("Перевод на русский") },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Accent, selectedLabelColor = Ink))
+                    FilterChip(d.answer == "DEFINITION", { d = d.copy(answer = "DEFINITION") }, label = { Text(if (d.lang == Language.EN) "Английские определения" else "Определения на языке") },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Accent, selectedLabelColor = Ink))
                 }
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Elevated).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("Новых в день", modifier = Modifier.weight(1f))

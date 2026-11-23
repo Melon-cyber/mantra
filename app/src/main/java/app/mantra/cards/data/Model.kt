@@ -17,8 +17,11 @@ data class Deck(
     val created: Long = System.currentTimeMillis(),
     /** Language being learned, for voice input and translation (a [Language] name). */
     val language: String = "EN",
+    /** "TRANSLATION" — the answer is a Russian translation; "DEFINITION" — an explanation in the language itself. */
+    val answer: String = "TRANSLATION",
 ) {
     val lang: Language get() = runCatching { Language.valueOf(language) }.getOrDefault(Language.EN)
+    val definitions: Boolean get() = answer == "DEFINITION" && lang != Language.RU
 }
 
 enum class CardState { NEW, LEARNING, REVIEW, RELEARNING }

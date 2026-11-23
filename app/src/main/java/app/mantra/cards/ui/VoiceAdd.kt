@@ -57,7 +57,7 @@ import app.mantra.cards.data.Deck
 import app.mantra.cards.data.Language
 import app.mantra.cards.data.splitSpoken
 
-private data class Draft(val id: Long, val front: String, val back: String, val loading: Boolean = true)
+private data class Draft(val id: Long, val front: String, val back: String, val loading: Boolean = true, val note: String = "")
 
 /**
  * Adding cards by voice: say a word (or several, with "and" or pauses that become commas),
@@ -86,7 +86,10 @@ private data class Draft(val id: Long, val front: String, val back: String, val 
                 model.translate(word, learning, toForeign = true) { t -> val i = drafts.indexOfFirst { it.id == id }; if (i >= 0) drafts[i] = drafts[i].copy(front = t ?: "", loading = false) }
             } else {
                 drafts.add(0, Draft(id, word, "…"))
-                model.translate(word, learning) { t -> val i = drafts.indexOfFirst { it.id == id }; if (i >= 0) drafts[i] = drafts[i].copy(back = t ?: "", loading = false) }
+                model.lookupWord(word, learning) { l ->
+                    val i = drafts.indexOfFirst { it.id == id }
+                    if (i >= 0) drafts[i] = drafts[i].copy(back = l?.answer(deck.definitions).orEmpty(), note = l?.exampleNote(deck.definitions).orEmpty(), loading = false)
+                }
             }
         }
         if (nonstop) launcherHolder[0]?.invoke()
@@ -143,7 +146,7 @@ private data class Draft(val id: Long, val front: String, val back: String, val 
                 }
             }
             val ready = drafts.filter { it.front.isNotBlank() && it.back.isNotBlank() && it.front != "…" && it.back != "…" }
-            Button(onClick = { model.addPairs(deck.id, ready.reversed().map { it.front.trim() to it.back.trim() }); close() }, enabled = ready.isNotEmpty(),
+            Button(onClick = { val list = ready.reversed(); model.addPairs(deck.id, list.map { it.front.trim() to it.back.trim() }, list.map { it.note }); close() }, enabled = ready.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Ink), modifier = Modifier.fillMaxWidth()) {
                 Text(if (ready.isEmpty()) "Добавить" else "Добавить ${ready.size}")
             }

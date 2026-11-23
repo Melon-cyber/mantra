@@ -47,12 +47,13 @@ class Store(context: Context) {
     fun deleteCard(id: String) = edit { s -> s.copy(cards = s.cards.filter { it.id != id }) }
 
     /** Adds many cards at once; lines whose front is already in the deck are skipped. Returns how many were added. */
-    fun addCards(deckId: String, pairs: List<Pair<String, String>>): Int {
+    fun addCards(deckId: String, pairs: List<Pair<String, String>>, notes: List<String> = emptyList()): Int {
         var added = 0
         edit { s ->
             val known = s.cards.filter { it.deckId == deckId }.map { it.front.lowercase() }.toMutableSet()
             val now = System.currentTimeMillis()
-            val fresh = pairs.filter { known.add(it.first.lowercase()) }.mapIndexed { i, (f, b) -> Card(UUID.randomUUID().toString(), deckId, f.take(500), b.take(1000), created = now + i) }
+            val fresh = pairs.mapIndexed { i, p -> p to notes.getOrElse(i) { "" } }.filter { known.add(it.first.first.lowercase()) }
+                .mapIndexed { i, (p, note) -> Card(UUID.randomUUID().toString(), deckId, p.first.take(500), p.second.take(1000), note.take(1000), created = now + i) }
             added = fresh.size
             s.copy(cards = s.cards + fresh)
         }
@@ -140,7 +141,7 @@ class Store(context: Context) {
 
     @Suppress("SENSELESS_COMPARISON", "UNNECESSARY_SAFE_CALL", "USELESS_ELVIS")
     private fun repair(s: Saved): Saved = Saved(
-        decks = (s.decks ?: emptyList()).filter { it?.id != null }.map { it.copy(name = it.name ?: "Колода", emoji = it.emoji ?: "🧠", language = it.language ?: "EN") },
+        decks = (s.decks ?: emptyList()).filter { it?.id != null }.map { it.copy(name = it.name ?: "Колода", emoji = it.emoji ?: "🧠", language = it.language ?: "EN", answer = it.answer ?: "TRANSLATION") },
         cards = (s.cards ?: emptyList()).filter { it?.id != null && it.deckId != null }.map { it.copy(front = it.front ?: "", back = it.back ?: "", note = it.note ?: "", state = it.state ?: CardState.NEW) },
         log = s.log ?: emptyMap(),
         started = s.started ?: emptyMap(),

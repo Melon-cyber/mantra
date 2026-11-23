@@ -42,7 +42,19 @@ class CardsViewModel(application: Application) : AndroidViewModel(application) {
     fun deleteDeck(d: Deck) { store.deleteDeck(d.id); note(Note("Колода «${d.name}» удалена")) }
     fun saveCard(c: Card) = store.saveCard(c)
     fun deleteCard(c: Card) { store.deleteCard(c.id); note(Note("Карточка удалена") { store.saveCard(c) }) }
-    fun addPairs(deckId: String, pairs: List<Pair<String, String>>): Int = store.addCards(deckId, pairs).also { note(Note("Добавлено карточек: $it")) }
+    fun addPairs(deckId: String, pairs: List<Pair<String, String>>, notes: List<String> = emptyList()): Int = store.addCards(deckId, pairs, notes).also { note(Note("Добавлено карточек: $it")) }
+
+    /** Full lookup of a word for a new card (translation or definitions, and examples); null when offline. */
+    fun lookupWord(text: String, deck: Deck, done: (Lookup?) -> Unit) {
+        val word = text.trim()
+        if (word.isEmpty() || deck.lang.code == "ru") { done(null); return }
+        mLookups.value[deck.lang.code + "|" + word.lowercase()]?.takeIf { it.full }?.let { done(it); return }
+        viewModelScope.launch {
+            val l = runCatching { Translator.lookup(word, deck.lang.code, "ru") }.getOrNull()
+            l?.let { remember(deck.lang.code, word, it) }
+            done(l)
+        }
+    }
 
     /** Translates [text] for a card of [deck]: from its language to Russian, or back when [toForeign]. */
     fun translate(text: String, deck: Deck, toForeign: Boolean = false, done: (String?) -> Unit) {
@@ -51,7 +63,7 @@ class CardsViewModel(application: Application) : AndroidViewModel(application) {
             // Into Russian, the card gets the main translation plus a couple of other common meanings.
             val result = runCatching {
                 if (toForeign) Translator.translate(text, "ru", lang)
-                else Translator.lookup(text, lang, if (lang == "ru") "en" else "ru", examples = false).also { remember(lang, text, it) }.answer()
+                else Translator.lookup(text, lang, if (lang == "ru") "en" else "ru", examples = false).answer(deck.definitions)
             }.getOrNull()
             if (result == null) note(Note("Перевод не получился. Проверь интернет или впиши вручную."))
             done(result?.takeIf { it.isNotBlank() })
@@ -87,7 +99,7 @@ class CardsViewModel(application: Application) : AndroidViewModel(application) {
     private fun remember(lang: String, word: String, l: Lookup) {
         val key = lang + "|" + word.trim().lowercase()
         val old = mLookups.value[key]
-        if (old != null && old.examples.isNotEmpty() && l.examples.isEmpty()) return
+        if (old != null && old.full && !l.full) return
         mLookups.value = (mLookups.value + (key to l)).entries.toList().takeLast(3000).associate { it.key to it.value }
         val snapshot = mLookups.value
         viewModelScope.launch(Dispatchers.IO) { runCatching { lookupFile.writeText(gson.toJson(snapshot)) } }
@@ -97,7 +109,7 @@ class CardsViewModel(application: Application) : AndroidViewModel(application) {
     fun context(card: Card, deck: Deck) {
         val key = lookupKey(card, deck)
         if (deck.lang.code == "ru" || card.front.length > 80) return
-        if (mLookups.value[key]?.examples?.isNotEmpty() == true || mLookups.value[key]?.meanings?.isNotEmpty() == true) return
+        if (mLookups.value[key]?.full == true) return
         mLookupFailed.value = mLookupFailed.value - key
         viewModelScope.launch {
             runCatching { Translator.lookup(card.front.trim(), deck.lang.code, "ru") }

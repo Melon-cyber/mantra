@@ -27,15 +27,35 @@ enum class Language(val label: String, val speech: String, val code: String) {
 /** Meanings of one part of speech: "глагол: брать, взять, принимать". */
 data class Meaning(val part: String, val words: List<String>)
 
+/** An explanation of the word in its own language, as in an English dictionary. */
+data class Definition(val part: String, val text: String, val example: String = "")
+
 /** An example sentence with the word, and its translation. */
 data class Example(val text: String, val translation: String = "")
 
 /** Everything found for a word: the main translation, meanings by part of speech and examples. */
-data class Lookup(val translation: String, val meanings: List<Meaning> = emptyList(), val examples: List<Example> = emptyList()) {
-    /** A card answer: the main translation plus a few other common meanings. */
-    fun answer(max: Int = 3): String {
+data class Lookup(
+    val translation: String,
+    val meanings: List<Meaning> = emptyList(),
+    val examples: List<Example> = emptyList(),
+    val definitions: List<Definition> = emptyList(),
+    /** True when looked up with definitions and examples (older saved lookups have only the translation). */
+    val full: Boolean = false,
+) {
+    /** A card answer: the main translation plus a few other common meanings, or dictionary definitions. */
+    fun answer(definitions: Boolean = false, max: Int = 3): String {
+        if (definitions && this.definitions.isNotEmpty()) {
+            val top = this.definitions.take(2)
+            return if (top.size == 1) top[0].text else top.mapIndexed { i, d -> "${i + 1}) ${d.text}" }.joinToString("\n")
+        }
         val words = (listOf(translation) + meanings.flatMap { it.words.take(2) }).map { it.trim() }.filter { it.isNotEmpty() }
         return words.distinctBy { it.lowercase() }.take(max).joinToString(", ")
+    }
+
+    /** A ready line for the card's example field: the sentence and, for translation cards, its translation. */
+    fun exampleNote(definitions: Boolean): String {
+        val e = examples.firstOrNull() ?: definitions.let { d -> this.definitions.firstOrNull { it.example.isNotBlank() }?.let { Example(it.example) } } ?: return ""
+        return if (!definitions && e.translation.isNotBlank()) "${e.text} — ${e.translation}" else e.text
     }
 }
 
@@ -76,7 +96,7 @@ object Translator {
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
 
     private fun google(text: String, from: String, to: String, examples: Boolean): Lookup {
-        val url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=$from&tl=$to&hl=ru&dt=t&dt=bd" + (if (examples) "&dt=ex" else "") + "&q=${enc(text)}"
+        val url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=$from&tl=$to&hl=en&dt=t&dt=bd&dt=md" + (if (examples) "&dt=ex" else "") + "&q=${enc(text)}"
         val root = JsonParser.parseString(get(url)).asJsonArray
         val translation = root.at(0)?.asArrayOrNull()?.joinToString("") { seg -> seg.asArrayOrNull()?.at(0)?.stringOrNull().orEmpty() }?.trim().orEmpty()
         val meanings = root.at(1)?.asArrayOrNull()?.mapNotNull { pos ->
@@ -95,7 +115,16 @@ object Translator {
             val lines = tr.at(0)?.asArrayOrNull()?.joinToString("") { seg -> seg.asArrayOrNull()?.at(0)?.stringOrNull().orEmpty() }.orEmpty().split("\n").map { it.trim() }
             if (lines.size == found.size) found = found.zip(lines) { e, t -> e.copy(translation = t) }
         }
-        return Lookup(translation, meanings, found)
+        val definitions = root.at(12)?.asArrayOrNull()?.flatMap { pos ->
+            val arr = pos.asArrayOrNull() ?: return@flatMap emptyList()
+            val part = arr.at(0)?.stringOrNull().orEmpty()
+            arr.at(1)?.asArrayOrNull()?.mapNotNull { d ->
+                val a = d.asArrayOrNull() ?: return@mapNotNull null
+                val t = a.at(0)?.stringOrNull()?.trim()?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                Definition(PARTS[part] ?: part, t, a.at(2)?.stringOrNull()?.trim().orEmpty())
+            }.orEmpty().take(3)
+        }.orEmpty().take(6)
+        return Lookup(translation, meanings, found, definitions, full = examples)
     }
 
     private fun myMemory(text: String, from: String, to: String): String? {
