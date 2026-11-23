@@ -15,7 +15,11 @@ data class Deck(
     /** How many new cards to start a day. */
     val newPerDay: Int = 15,
     val created: Long = System.currentTimeMillis(),
-)
+    /** Language being learned, for voice input and translation (a [Language] name). */
+    val language: String = "EN",
+) {
+    val lang: Language get() = runCatching { Language.valueOf(language) }.getOrDefault(Language.EN)
+}
 
 enum class CardState { NEW, LEARNING, REVIEW, RELEARNING }
 

@@ -10,6 +10,7 @@ import app.mantra.cards.data.Deck
 import app.mantra.cards.data.DeckCounts
 import app.mantra.cards.data.Grade
 import app.mantra.cards.data.STARTER_WORDS
+import app.mantra.cards.data.Translator
 import app.mantra.cards.data.Saved
 import app.mantra.cards.data.parseCards
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +41,18 @@ class CardsViewModel(application: Application) : AndroidViewModel(application) {
     fun deleteDeck(d: Deck) { store.deleteDeck(d.id); note(Note("Колода «${d.name}» удалена")) }
     fun saveCard(c: Card) = store.saveCard(c)
     fun deleteCard(c: Card) { store.deleteCard(c.id); note(Note("Карточка удалена") { store.saveCard(c) }) }
+    fun addPairs(deckId: String, pairs: List<Pair<String, String>>): Int = store.addCards(deckId, pairs).also { note(Note("Добавлено карточек: $it")) }
+
+    /** Translates [text] for a card of [deck]: from its language to Russian, or back when [toForeign]. */
+    fun translate(text: String, deck: Deck, toForeign: Boolean = false, done: (String?) -> Unit) {
+        viewModelScope.launch {
+            val lang = deck.lang.code
+            val result = runCatching { if (toForeign) Translator.translate(text, "ru", lang) else Translator.translate(text, lang, if (lang == "ru") "en" else "ru") }.getOrNull()
+            if (result == null) note(Note("Перевод не получился. Проверь интернет или впиши вручную."))
+            done(result?.takeIf { it.isNotBlank() })
+        }
+    }
+
     fun addText(deckId: String, text: String): Int = store.addCards(deckId, parseCards(text)).also { note(Note("Добавлено карточек: $it")) }
 
     fun starterDeck(): Deck {
@@ -69,7 +82,7 @@ class CardsViewModel(application: Application) : AndroidViewModel(application) {
     /** Keeps the card on screen in step with an edit made during study. */
     fun editedDuringStudy(card: Card) { mSession.value = mSession.value?.let { if (it.card?.id == card.id) it.copy(card = card) else it } }
 
-    fun say(text: String) = app.speaker.say(text)
+    fun say(text: String, deck: Deck? = null) = app.speaker.say(text, deck?.lang?.speech)
 
     fun backup(uri: Uri) {
         viewModelScope.launch {

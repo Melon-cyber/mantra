@@ -140,7 +140,7 @@ class Store(context: Context) {
 
     @Suppress("SENSELESS_COMPARISON", "UNNECESSARY_SAFE_CALL", "USELESS_ELVIS")
     private fun repair(s: Saved): Saved = Saved(
-        decks = (s.decks ?: emptyList()).filter { it?.id != null }.map { it.copy(name = it.name ?: "Колода", emoji = it.emoji ?: "🧠") },
+        decks = (s.decks ?: emptyList()).filter { it?.id != null }.map { it.copy(name = it.name ?: "Колода", emoji = it.emoji ?: "🧠", language = it.language ?: "EN") },
         cards = (s.cards ?: emptyList()).filter { it?.id != null && it.deckId != null }.map { it.copy(front = it.front ?: "", back = it.back ?: "", note = it.note ?: "", state = it.state ?: CardState.NEW) },
         log = s.log ?: emptyMap(),
         started = s.started ?: emptyMap(),

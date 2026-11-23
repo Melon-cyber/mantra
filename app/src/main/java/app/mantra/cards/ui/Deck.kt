@@ -30,6 +30,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.Translate
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.Search
@@ -70,6 +74,7 @@ import app.mantra.cards.data.Card
 import app.mantra.cards.data.CardState
 import app.mantra.cards.data.Deck
 import app.mantra.cards.data.EMOJIS
+import app.mantra.cards.data.Language
 import app.mantra.cards.data.Saved
 import app.mantra.cards.data.parseCards
 import app.mantra.cards.data.plural
@@ -81,12 +86,15 @@ import kotlinx.coroutines.launch
     var query by remember { mutableStateOf("") }
     var cardEditor by remember { mutableStateOf<Card?>(null) }
     var importing by remember { mutableStateOf(false) }
+    var voice by remember { mutableStateOf(false) }
+    if (voice) VoiceAddSheet(model, deck, close = { voice = false })
     var menu by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     val shown = cards.filter { query.isBlank() || it.front.contains(query, true) || it.back.contains(query, true) }.sortedByDescending { it.created }
 
     cardEditor?.let { c -> CardEditor(c, close = { cardEditor = null }, save = { saved, again -> model.saveCard(saved); cardEditor = if (again) Card("", deck.id, "", "") else null },
-        delete = if (c.id.isNotBlank()) ({ model.deleteCard(c); cardEditor = null }) else null) }
+        delete = if (c.id.isNotBlank()) ({ model.deleteCard(c); cardEditor = null }) else null,
+        translate = { text, set -> model.translate(text, deck) { it?.let(set) } }) }
     if (importing) ImportDialog(model, close = { importing = false }) { text -> model.addText(deck.id, text); importing = false }
     if (confirmDelete) AlertDialog(onDismissRequest = { confirmDelete = false }, title = { Text("Удалить «${deck.name}»?") },
         text = { Text("Пропадут все ${cards.size} ${plural(cards.size, "карточка", "карточки", "карточек")} и их прогресс.") },
@@ -124,9 +132,12 @@ import kotlinx.coroutines.launch
                     colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Ink), modifier = Modifier.fillMaxWidth().padding(top = 14.dp)) {
                     Text(if (cards.isEmpty()) "Сначала добавь карточки" else if (counts.due + counts.fresh + counts.learning == 0) "На сегодня всё 🎉" else "Учить")
                 }
+                Button(onClick = { voice = true }, colors = ButtonDefaults.buttonColors(containerColor = Elevated, contentColor = SoftWhite), modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                    Icon(Icons.Rounded.Mic, null); Text("  Добавить голосом", style = MaterialTheme.typography.labelLarge)
+                }
                 Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = { cardEditor = Card("", deck.id, "", "") }, modifier = Modifier.weight(1f)) { Icon(Icons.Rounded.Add, null); Text("Карточка") }
-                    OutlinedButton(onClick = { importing = true }, modifier = Modifier.weight(1f)) { Text("Добавить списком") }
+                    OutlinedButton(onClick = { importing = true }, modifier = Modifier.weight(1f)) { Text("Списком") }
                 }
             }
         }
@@ -158,7 +169,7 @@ import kotlinx.coroutines.launch
     }
 }
 
-@Composable fun CardEditor(start: Card, close: () -> Unit, save: (Card, Boolean) -> Unit, delete: (() -> Unit)?) {
+@Composable fun CardEditor(start: Card, close: () -> Unit, save: (Card, Boolean) -> Unit, delete: (() -> Unit)?, translate: ((String, (String) -> Unit) -> Unit)? = null) {
     var front by remember(start) { mutableStateOf(start.front) }
     var back by remember(start) { mutableStateOf(start.back) }
     var note by remember(start) { mutableStateOf(start.note) }
@@ -170,7 +181,8 @@ import kotlinx.coroutines.launch
                 OutlinedTextField(front, { front = it.take(500) }, label = { Text("Вопрос или слово") }, modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences))
                 OutlinedTextField(back, { back = it.take(1000) }, label = { Text("Ответ или перевод") }, modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences))
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    trailingIcon = if (translate != null && front.isNotBlank()) ({ IconButton(onClick = { translate(front) { back = it } }) { Icon(Icons.Rounded.Translate, "Перевести") } }) else null)
                 OutlinedTextField(note, { note = it.take(1000) }, label = { Text("Пример или подсказка (необязательно)") }, modifier = Modifier.fillMaxWidth().heightIn(min = 80.dp))
                 if (isNew) TextButton(onClick = { save(start.copy(front = front, back = back, note = note), true) }, enabled = ok) { Text("Сохранить и добавить ещё") }
                 if (delete != null) TextButton(onClick = delete) { Text("Удалить карточку", color = Color(0xFFFF8A80)) }
@@ -217,6 +229,13 @@ import kotlinx.coroutines.launch
                     COLORS.forEachIndexed { i, c ->
                         Box(Modifier.size(28.dp).clip(CircleShape).background(Color(c)).then(if (c == d.color) Modifier.border(3.dp, SoftWhite, CircleShape) else Modifier)
                             .clickable { d = d.copy(color = c) }.semantics { contentDescription = "Цвет ${i + 1}"; selected = c == d.color })
+                    }
+                }
+                Text("Язык (для голоса и перевода)", style = MaterialTheme.typography.titleSmall)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Language.entries.filter { it != Language.RU }.forEach { l ->
+                        FilterChip(d.language == l.name, { d = d.copy(language = l.name) }, label = { Text(l.label) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Accent, selectedLabelColor = Ink))
                     }
                 }
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Elevated).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {

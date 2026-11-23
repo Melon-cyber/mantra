@@ -57,7 +57,8 @@ private val gradeColors = mapOf(Grade.AGAIN to Color(0xFFFF8A80), Grade.HARD to 
     val card = session.card
     var editing by remember { mutableStateOf<Card?>(null) }
     editing?.let { c -> CardEditor(c, close = { editing = null }, save = { saved, _ -> model.editedDuringStudy(model.saveCard(saved)); editing = null },
-        delete = { model.deleteCard(c); editing = null; model.study(session.deckId) }) }
+        delete = { model.deleteCard(c); editing = null; model.study(session.deckId) },
+        translate = state.decks.firstOrNull { it.id == c.deckId }?.let { d -> { text: String, set: (String) -> Unit -> model.translate(text, d) { it?.let(set) } } }) }
     val deck = state.decks.firstOrNull { it.id == (card?.deckId ?: session.deckId) }
     val left = state.decks.filter { session.deckId == null || it.id == session.deckId }.sumOf { d -> model.counts(d).let { it.due + it.fresh + it.learning } }
 
@@ -86,7 +87,7 @@ private val gradeColors = mapOf(Grade.AGAIN to Color(0xFFFF8A80), Grade.HARD to 
                 if (card.state == CardState.NEW) Text("новая", style = MaterialTheme.typography.labelMedium, color = Color(0xFF7CC4FF))
                 Text(card.front, style = MaterialTheme.typography.headlineSmall.copy(fontSize = if (card.front.length > 60) 20.sp else 28.sp, lineHeight = if (card.front.length > 60) 28.sp else 36.sp),
                     textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
-                IconButton(onClick = { model.say(card.front) }) { Icon(Icons.AutoMirrored.Rounded.VolumeUp, "Произнести", tint = Muted) }
+                IconButton(onClick = { model.say(card.front, deck) }) { Icon(Icons.AutoMirrored.Rounded.VolumeUp, "Произнести", tint = Muted) }
                 if (session.shown) {
                     Box(Modifier.padding(vertical = 14.dp).fillMaxWidth(.4f).height(1.dp).background(Line))
                     Text(card.back, style = MaterialTheme.typography.titleLarge.copy(fontSize = if (card.back.length > 80) 18.sp else 24.sp, lineHeight = if (card.back.length > 80) 26.sp else 32.sp),
