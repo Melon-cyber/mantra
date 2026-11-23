@@ -9,6 +9,7 @@ import app.mantra.cards.data.CardState
 import app.mantra.cards.data.Deck
 import app.mantra.cards.data.DeckCounts
 import app.mantra.cards.data.Grade
+import app.mantra.cards.data.Lookup
 import app.mantra.cards.data.STARTER_WORDS
 import app.mantra.cards.data.Translator
 import app.mantra.cards.data.Saved
@@ -47,7 +48,11 @@ class CardsViewModel(application: Application) : AndroidViewModel(application) {
     fun translate(text: String, deck: Deck, toForeign: Boolean = false, done: (String?) -> Unit) {
         viewModelScope.launch {
             val lang = deck.lang.code
-            val result = runCatching { if (toForeign) Translator.translate(text, "ru", lang) else Translator.translate(text, lang, if (lang == "ru") "en" else "ru") }.getOrNull()
+            // Into Russian, the card gets the main translation plus a couple of other common meanings.
+            val result = runCatching {
+                if (toForeign) Translator.translate(text, "ru", lang)
+                else Translator.lookup(text, lang, if (lang == "ru") "en" else "ru", examples = false).also { remember(lang, text, it) }.answer()
+            }.getOrNull()
             if (result == null) note(Note("Перевод не получился. Проверь интернет или впиши вручную."))
             done(result?.takeIf { it.isNotBlank() })
         }
@@ -62,7 +67,44 @@ class CardsViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun study(deckId: String?) { mSession.value = Session(deckId, store.next(deckId)) }
-    fun reveal() { mSession.value = mSession.value?.copy(shown = true) }
+    fun reveal() {
+        mSession.value = mSession.value?.copy(shown = true)
+        mSession.value?.card?.let { card -> state.value.decks.firstOrNull { it.id == card.deckId }?.let { context(card, it) } }
+    }
+
+    // ---- Context: meanings and example sentences, shown after the answer is revealed ----
+    private val lookupFile = java.io.File(application.filesDir, "lookups.json")
+    private val gson = com.google.gson.Gson()
+    private val mLookups = MutableStateFlow<Map<String, Lookup>>(runCatching {
+        gson.fromJson<Map<String, Lookup>>(lookupFile.readText(), object : com.google.gson.reflect.TypeToken<Map<String, Lookup>>() {}.type)
+    }.getOrNull().orEmpty().filterValues { it?.translation != null })
+    /** Saved lookups by "language|word", so context also shows without internet next time. */
+    val lookups = mLookups.asStateFlow()
+    private val mLookupFailed = MutableStateFlow<Set<String>>(emptySet())
+    val lookupFailed = mLookupFailed.asStateFlow()
+    fun lookupKey(card: Card, deck: Deck) = deck.lang.code + "|" + card.front.trim().lowercase()
+
+    private fun remember(lang: String, word: String, l: Lookup) {
+        val key = lang + "|" + word.trim().lowercase()
+        val old = mLookups.value[key]
+        if (old != null && old.examples.isNotEmpty() && l.examples.isEmpty()) return
+        mLookups.value = (mLookups.value + (key to l)).entries.toList().takeLast(3000).associate { it.key to it.value }
+        val snapshot = mLookups.value
+        viewModelScope.launch(Dispatchers.IO) { runCatching { lookupFile.writeText(gson.toJson(snapshot)) } }
+    }
+
+    /** Loads meanings and examples for the card's word, once; Russian-language decks have nothing to look up. */
+    fun context(card: Card, deck: Deck) {
+        val key = lookupKey(card, deck)
+        if (deck.lang.code == "ru" || card.front.length > 80) return
+        if (mLookups.value[key]?.examples?.isNotEmpty() == true || mLookups.value[key]?.meanings?.isNotEmpty() == true) return
+        mLookupFailed.value = mLookupFailed.value - key
+        viewModelScope.launch {
+            runCatching { Translator.lookup(card.front.trim(), deck.lang.code, "ru") }
+                .onSuccess { remember(deck.lang.code, card.front, it) }
+                .onFailure { mLookupFailed.value = mLookupFailed.value + key }
+        }
+    }
     fun endStudy() { mSession.value = null }
 
     fun answer(grade: Grade) {

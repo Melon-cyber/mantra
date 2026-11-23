@@ -1,5 +1,7 @@
 package app.mantra.cards.data
 
+import com.google.gson.JsonArray
+import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,22 +24,89 @@ enum class Language(val label: String, val speech: String, val code: String) {
     RU("Русский", "ru-RU", "ru"),
 }
 
-/** Short translations for new cards, through the public Google Translate web endpoint. */
+/** Meanings of one part of speech: "глагол: брать, взять, принимать". */
+data class Meaning(val part: String, val words: List<String>)
+
+/** An example sentence with the word, and its translation. */
+data class Example(val text: String, val translation: String = "")
+
+/** Everything found for a word: the main translation, meanings by part of speech and examples. */
+data class Lookup(val translation: String, val meanings: List<Meaning> = emptyList(), val examples: List<Example> = emptyList()) {
+    /** A card answer: the main translation plus a few other common meanings. */
+    fun answer(max: Int = 3): String {
+        val words = (listOf(translation) + meanings.flatMap { it.words.take(2) }).map { it.trim() }.filter { it.isNotEmpty() }
+        return words.distinctBy { it.lowercase() }.take(max).joinToString(", ")
+    }
+}
+
+private val PARTS = mapOf(
+    "noun" to "сущ.", "verb" to "глагол", "adjective" to "прил.", "adverb" to "нареч.", "pronoun" to "местоим.",
+    "preposition" to "предлог", "conjunction" to "союз", "interjection" to "межд.", "phrase" to "фраза", "abbreviation" to "сокр.",
+)
+
+/**
+ * Translations for cards. The main source is the public Google Translate web endpoint (with dictionary meanings
+ * and example sentences); when it does not answer, the free MyMemory service gives at least the translation.
+ */
 object Translator {
-    suspend fun translate(text: String, from: String, to: String): String = withContext(Dispatchers.IO) {
-        val url = URL("https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=$from&tl=$to")
-        val connection = (url.openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"; doOutput = true; connectTimeout = 10_000; readTimeout = 15_000
-            setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8")
+    private const val AGENT = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"
+
+    suspend fun translate(text: String, from: String, to: String): String = lookup(text, from, to, examples = false).translation
+
+    suspend fun lookup(text: String, from: String, to: String, examples: Boolean = true): Lookup = withContext(Dispatchers.IO) {
+        val google = runCatching { google(text, from, to, examples) }.getOrNull()
+        if (google != null && google.translation.isNotBlank()) return@withContext google
+        val backup = runCatching { myMemory(text, from, to) }.getOrNull()
+        if (!backup.isNullOrBlank()) return@withContext Lookup(backup)
+        throw IOException("Перевод недоступен")
+    }
+
+    private fun get(url: String): String {
+        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            connectTimeout = 10_000; readTimeout = 15_000
+            setRequestProperty("User-Agent", AGENT)
+            setRequestProperty("Accept-Language", "ru,en;q=0.8")
         }
         try {
-            connection.outputStream.use { it.write("q=${URLEncoder.encode(text, "UTF-8")}".toByteArray()) }
-            if (connection.responseCode != 200) throw IOException("Перевод недоступен (${connection.responseCode})")
-            val body = connection.inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
-            val root = JsonParser.parseString(body).asJsonArray
-            root[0].asJsonArray.joinToString("") { seg -> seg.asJsonArray[0].takeIf { it.isJsonPrimitive }?.asString.orEmpty() }.trim()
+            if (connection.responseCode != 200) throw IOException("HTTP ${connection.responseCode}")
+            return connection.inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
         } finally { connection.disconnect() }
     }
+
+    private fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
+
+    private fun google(text: String, from: String, to: String, examples: Boolean): Lookup {
+        val url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=$from&tl=$to&hl=ru&dt=t&dt=bd" + (if (examples) "&dt=ex" else "") + "&q=${enc(text)}"
+        val root = JsonParser.parseString(get(url)).asJsonArray
+        val translation = root.at(0)?.asArrayOrNull()?.joinToString("") { seg -> seg.asArrayOrNull()?.at(0)?.stringOrNull().orEmpty() }?.trim().orEmpty()
+        val meanings = root.at(1)?.asArrayOrNull()?.mapNotNull { pos ->
+            val arr = pos.asArrayOrNull() ?: return@mapNotNull null
+            val part = arr.at(0)?.stringOrNull().orEmpty()
+            val words = arr.at(1)?.asArrayOrNull()?.mapNotNull { it.stringOrNull() }.orEmpty()
+            if (words.isEmpty()) null else Meaning(PARTS[part] ?: part, words.take(6))
+        }.orEmpty()
+        var found = root.at(13)?.asArrayOrNull()?.at(0)?.asArrayOrNull()?.mapNotNull { ex ->
+            ex.asArrayOrNull()?.at(0)?.stringOrNull()?.replace(Regex("<[^>]+>"), "")?.trim()?.takeIf { it.isNotEmpty() }
+        }.orEmpty().take(3).map { Example(it) }
+        // Example sentences come in the word's language; translate them together in one request.
+        if (found.isNotEmpty()) runCatching {
+            val joined = found.joinToString("\n") { it.text }
+            val tr = JsonParser.parseString(get("https://translate.googleapis.com/translate_a/single?client=gtx&sl=$from&tl=$to&dt=t&q=${enc(joined)}")).asJsonArray
+            val lines = tr.at(0)?.asArrayOrNull()?.joinToString("") { seg -> seg.asArrayOrNull()?.at(0)?.stringOrNull().orEmpty() }.orEmpty().split("\n").map { it.trim() }
+            if (lines.size == found.size) found = found.zip(lines) { e, t -> e.copy(translation = t) }
+        }
+        return Lookup(translation, meanings, found)
+    }
+
+    private fun myMemory(text: String, from: String, to: String): String? {
+        val pair = "${from.substringBefore('-')}|${to.substringBefore('-')}"
+        val root = JsonParser.parseString(get("https://api.mymemory.translated.net/get?q=${enc(text)}&langpair=${enc(pair)}")).asJsonObject
+        return root.getAsJsonObject("responseData")?.get("translatedText")?.stringOrNull()?.trim()?.takeIf { it.isNotEmpty() && !it.startsWith("MYMEMORY WARNING", true) }
+    }
+
+    private fun JsonArray.at(i: Int): JsonElement? = if (i < size() && !get(i).isJsonNull) get(i) else null
+    private fun JsonElement.asArrayOrNull(): JsonArray? = if (isJsonArray) asJsonArray else null
+    private fun JsonElement.stringOrNull(): String? = if (isJsonPrimitive) asString else null
 }
 
 /** What was said, split into separate words or phrases: "apple, banana and cherry" → three cards. */

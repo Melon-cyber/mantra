@@ -93,6 +93,7 @@ private val gradeColors = mapOf(Grade.AGAIN to Color(0xFFFF8A80), Grade.HARD to 
                     Text(card.back, style = MaterialTheme.typography.titleLarge.copy(fontSize = if (card.back.length > 80) 18.sp else 24.sp, lineHeight = if (card.back.length > 80) 26.sp else 32.sp),
                         color = Accent, textAlign = TextAlign.Center)
                     if (card.note.isNotBlank()) Text(card.note, style = MaterialTheme.typography.bodyMedium, color = Muted, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 12.dp))
+                    if (deck != null) CardContext(model, card, deck)
                 } else {
                     Spacer(Modifier.height(24.dp))
                     Text("Вспомни ответ и нажми на карточку", style = MaterialTheme.typography.bodySmall, color = Muted, textAlign = TextAlign.Center)
