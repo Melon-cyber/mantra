@@ -1,0 +1,667 @@
+the — определённый артикль (этот, тот)
+be — быть
+and — и
+of — из, от (предлог принадлежности)
+a — неопределённый артикль (один, какой-то)
+to — к, в, до
+in — в, внутри
+have — иметь
+it — это, оно
+you — ты, вы
+he — он
+for — для, за
+they — они
+not — не
+that — тот, что
+we — мы
+on — на
+with — с
+this — этот
+I — я
+do — делать
+as — как, в качестве
+at — в, у, около
+she — она
+but — но
+from — от, из
+by — у, около, посредством
+will — будет (будущее время)
+or — или
+say — сказать, говорить
+go — идти, ехать
+so — так, поэтому
+all — все, весь
+if — если
+one — один
+would — бы
+about — о, около
+can — мочь, уметь
+which — который
+there — там
+know — знать
+more — больше
+get — получать, становиться
+who — кто
+like — нравиться, как
+when — когда
+think — думать
+make — делать, создавать
+time — время, раз
+see — видеть
+what — что
+up — вверх
+some — некоторые, немного
+other — другой
+out — вне, наружу
+good — хороший
+people — люди
+year — год
+take — брать
+no — нет
+well — хорошо
+because — потому что
+very — очень
+just — только что, просто
+come — приходить
+could — мог бы
+work — работа, работать
+use — использовать
+than — чем
+now — сейчас
+then — тогда, потом
+also — также
+into — в (внутрь)
+only — только
+look — смотреть, выглядеть
+want — хотеть
+give — давать
+first — первый
+new — новый
+way — путь, способ
+find — находить
+over — над, через
+any — любой, какой-нибудь
+after — после
+day — день
+where — где, куда
+thing — вещь
+most — больше всего, большинство
+should — следует, должен
+need — нуждаться, нужно
+much — много
+right — правый, правильный
+how — как
+back — назад, спина
+mean — означать, иметь в виду
+even — даже
+may — может, мочь
+here — здесь
+many — много
+such — такой
+last — последний, длиться
+child — ребёнок
+tell — рассказывать, сказать
+really — действительно
+call — звонить, называть
+before — перед, до
+company — компания
+through — через, сквозь
+down — вниз
+show — показывать
+life — жизнь
+man — мужчина, человек
+change — менять, изменение
+place — место
+long — длинный, долгий
+between — между
+feel — чувствовать
+too — тоже, слишком
+still — всё ещё
+problem — проблема
+write — писать
+same — тот же самый
+lot — много (a lot)
+great — великий, отличный
+try — пытаться, пробовать
+leave — уходить, оставлять
+number — число, номер
+both — оба
+own — собственный
+part — часть
+point — точка, смысл
+little — маленький, мало
+help — помогать, помощь
+ask — спрашивать, просить
+meet — встречать
+start — начинать
+talk — разговаривать
+something — что-то
+put — класть, ставить
+another — ещё один, другой
+become — становиться
+interest — интерес
+country — страна
+old — старый
+each — каждый
+school — школа
+late — поздний, поздно
+high — высокий
+different — разный, другой
+off — выключено, прочь
+next — следующий
+end — конец, заканчивать
+live — жить
+why — почему
+while — пока, в то время как
+world — мир
+week — неделя
+play — играть
+might — мог бы, возможно
+must — должен
+home — дом (родной), домой
+never — никогда
+include — включать
+course — курс
+house — дом (здание)
+report — отчёт, сообщать
+group — группа
+case — случай
+woman — женщина
+around — вокруг
+book — книга
+family — семья
+seem — казаться
+let — позволять
+again — снова
+kind — вид, добрый
+keep — хранить, продолжать
+hear — слышать
+system — система
+every — каждый
+question — вопрос
+during — во время
+always — всегда
+big — большой
+set — набор, устанавливать
+small — маленький
+study — учиться, изучать
+follow — следовать
+begin — начинать
+important — важный
+since — с тех пор, так как
+run — бежать
+under — под
+turn — поворачивать, очередь
+few — мало, несколько
+bring — приносить
+early — ранний, рано
+hand — рука (кисть)
+state — государство, состояние
+move — двигаться, переезжать
+money — деньги
+fact — факт
+however — однако
+area — район, область
+provide — предоставлять
+service — услуга, служба
+young — молодой
+friend — друг
+sure — уверенный
+happen — происходить
+believe — верить
+yes — да
+together — вместе
+city — город
+power — сила, власть
+hold — держать
+far — далеко
+real — настоящий
+word — слово
+nothing — ничего
+large — большой, крупный
+side — сторона
+learn — учить, узнавать
+yet — ещё, уже (в вопросах)
+water — вода
+open — открывать, открытый
+lose — терять, проигрывать
+away — прочь, вдали
+watch — смотреть, часы
+car — машина
+name — имя, название
+office — офис
+health — здоровье
+night — ночь
+idea — идея
+food — еда
+level — уровень
+minute — минута
+hour — час
+almost — почти
+pay — платить
+law — закон
+door — дверь
+sometimes — иногда
+person — человек
+head — голова
+stand — стоять
+understand — понимать
+buy — покупать
+love — любить, любовь
+light — свет, лёгкий
+wait — ждать
+already — уже
+remember — помнить
+reason — причина
+easy — лёгкий, простой
+hard — трудный, твёрдый
+free — свободный, бесплатный
+full — полный
+whole — целый
+public — общественный
+store — магазин, хранить
+send — отправлять
+plan — план, планировать
+ready — готовый
+body — тело
+morning — утро
+evening — вечер
+today — сегодня
+tomorrow — завтра
+yesterday — вчера
+month — месяц
+war — война
+history — история
+party — вечеринка, партия
+result — результат
+team — команда
+age — возраст
+answer — ответ, отвечать
+art — искусство
+form — форма, бланк
+moment — момент
+air — воздух
+teacher — учитель
+student — студент
+job — работа (должность)
+price — цена
+cost — стоить, стоимость
+sell — продавать
+spend — тратить, проводить (время)
+grow — расти
+walk — идти пешком, прогулка
+win — выигрывать
+offer — предлагать
+consider — рассматривать, считать
+appear — появляться
+die — умирать
+expect — ожидать
+build — строить
+stay — оставаться
+fall — падать, осень
+cut — резать
+reach — достигать
+kill — убивать
+remain — оставаться
+suggest — предлагать
+raise — поднимать
+pass — проходить, передавать
+require — требовать
+decide — решать
+return — возвращаться
+explain — объяснять
+hope — надеяться, надежда
+develop — развивать
+carry — нести
+break — ломать, перерыв
+receive — получать
+agree — соглашаться
+support — поддерживать
+hit — ударять
+produce — производить
+eat — есть (кушать)
+drink — пить
+cover — покрывать, обложка
+catch — ловить
+draw — рисовать
+choose — выбирать
+wish — желать
+drive — водить, ехать
+sleep — спать
+sit — сидеть
+read — читать
+speak — говорить (на языке)
+listen — слушать
+close — закрывать, близкий
+sing — петь
+dance — танцевать
+cook — готовить (еду)
+clean — чистый, убирать
+wash — мыть
+fly — летать
+swim — плавать
+travel — путешествовать
+visit — посещать
+forget — забывать
+thank — благодарить
+smile — улыбаться
+cry — плакать
+laugh — смеяться
+fight — драться, бороться
+worry — волноваться
+enjoy — наслаждаться
+prefer — предпочитать
+allow — разрешать
+add — добавлять
+create — создавать
+fill — наполнять
+check — проверять
+compare — сравнивать
+count — считать
+describe — описывать
+discuss — обсуждать
+improve — улучшать
+join — присоединяться
+mention — упоминать
+notice — замечать
+order — заказ, порядок, заказывать
+prepare — готовить(ся)
+protect — защищать
+share — делиться
+teach — учить (кого-то)
+throw — бросать
+touch — трогать
+fix — чинить
+hide — прятать
+miss — скучать, пропускать
+save — сохранять, спасать
+search — искать, поиск
+fail — проваливаться, не суметь
+hurt — ранить, болеть
+borrow — брать взаймы
+lend — давать взаймы
+rent — арендовать
+wear — носить (одежду)
+fit — подходить (по размеру)
+weather — погода
+rain — дождь
+snow — снег
+sun — солнце
+wind — ветер
+sky — небо
+sea — море
+river — река
+mountain — гора
+tree — дерево
+flower — цветок
+grass — трава
+animal — животное
+dog — собака
+cat — кошка
+bird — птица
+fish — рыба
+horse — лошадь
+cow — корова
+road — дорога
+street — улица
+bridge — мост
+building — здание
+room — комната
+kitchen — кухня
+bedroom — спальня
+bathroom — ванная
+window — окно
+wall — стена
+floor — пол, этаж
+roof — крыша
+table — стол
+chair — стул
+bed — кровать
+key — ключ
+bag — сумка
+box — коробка
+bottle — бутылка
+cup — чашка
+plate — тарелка
+knife — нож
+fork — вилка
+spoon — ложка
+bread — хлеб
+meat — мясо
+milk — молоко
+egg — яйцо
+cheese — сыр
+apple — яблоко
+fruit — фрукт
+vegetable — овощ
+sugar — сахар
+salt — соль
+coffee — кофе
+tea — чай
+juice — сок
+breakfast — завтрак
+lunch — обед
+dinner — ужин
+shop — магазин
+market — рынок
+bank — банк
+hospital — больница
+doctor — врач
+police — полиция
+station — станция, вокзал
+airport — аэропорт
+ticket — билет
+train — поезд
+bus — автобус
+plane — самолёт
+ship — корабль
+bike — велосипед
+phone — телефон
+computer — компьютер
+letter — письмо, буква
+paper — бумага
+picture — картина, фото
+film — фильм
+music — музыка
+song — песня
+game — игра
+sport — спорт
+ball — мяч
+clothes — одежда
+shirt — рубашка
+dress — платье
+shoes — обувь
+hat — шляпа
+coat — пальто
+color — цвет
+red — красный
+blue — синий, голубой
+green — зелёный
+yellow — жёлтый
+black — чёрный
+white — белый
+brown — коричневый
+grey — серый
+pink — розовый
+orange — оранжевый, апельсин
+happy — счастливый
+sad — грустный
+angry — злой
+tired — уставший
+hungry — голодный
+thirsty — желающий пить
+afraid — боящийся
+busy — занятой
+bored — скучающий
+sick — больной
+hot — горячий, жаркий
+cold — холодный, простуда
+warm — тёплый
+cool — прохладный, классный
+dry — сухой
+wet — мокрый
+fast — быстрый
+slow — медленный
+quiet — тихий
+loud — громкий
+rich — богатый
+poor — бедный
+cheap — дешёвый
+expensive — дорогой
+beautiful — красивый
+ugly — некрасивый
+clever — умный
+stupid — глупый
+strong — сильный
+weak — слабый
+heavy — тяжёлый
+empty — пустой
+dark — тёмный
+bright — яркий
+safe — безопасный
+dangerous — опасный
+true — правдивый, верный
+false — ложный
+simple — простой
+difficult — трудный
+possible — возможный
+necessary — необходимый
+popular — популярный
+famous — знаменитый
+modern — современный
+ancient — древний
+foreign — иностранный
+special — особый
+usual — обычный
+strange — странный
+wrong — неправильный
+better — лучше
+best — лучший
+worse — хуже
+worst — худший
+enough — достаточно
+quite — довольно
+rather — скорее, довольно
+probably — вероятно
+maybe — может быть
+perhaps — возможно
+certainly — конечно, несомненно
+exactly — точно
+especially — особенно
+usually — обычно
+often — часто
+seldom — редко
+soon — скоро
+once — однажды, один раз
+twice — дважды
+ago — тому назад
+later — позже
+above — над, выше
+below — под, ниже
+behind — позади
+near — рядом
+inside — внутри
+outside — снаружи
+without — без
+against — против
+across — через, поперёк
+along — вдоль
+toward — по направлению к
+among — среди
+until — до тех пор пока
+although — хотя
+unless — если не
+whether — ли
+everyone — каждый, все
+someone — кто-то
+anyone — кто-нибудь
+nobody — никто
+everything — всё
+anything — что-нибудь
+somewhere — где-то
+everywhere — везде
+nowhere — нигде
+father — отец
+mother — мать
+brother — брат
+sister — сестра
+son — сын
+daughter — дочь
+husband — муж
+wife — жена
+parents — родители
+baby — младенец
+boy — мальчик
+girl — девочка
+neighbour — сосед
+boss — начальник
+guest — гость
+face — лицо
+eye — глаз
+ear — ухо
+nose — нос
+mouth — рот
+tooth — зуб
+hair — волосы
+arm — рука (от плеча)
+leg — нога
+foot — ступня
+finger — палец
+heart — сердце
+blood — кровь
+voice — голос
+mind — разум, возражать
+dream — мечта, сон
+fear — страх
+joy — радость
+truth — правда
+mistake — ошибка
+success — успех
+future — будущее
+past — прошлое
+present — настоящее, подарок
+gift — подарок
+holiday — праздник, отпуск
+birthday — день рождения
+weekend — выходные
+village — деревня
+island — остров
+forest — лес
+field — поле
+garden — сад
+park — парк
+beach — пляж
+earth — земля
+fire — огонь
+stone — камень
+gold — золото
+glass — стекло, стакан
+wood — дерево (материал)
+metal — металл
+size — размер
+shape — форма
+weight — вес
+distance — расстояние
+half — половина
+pair — пара
+piece — кусок
+amount — количество
+example — пример
+information — информация
+news — новости
+language — язык
+lesson — урок
+test — тест, проверять
+exam — экзамен
+homework — домашнее задание
+knowledge — знание
+skill — навык
+experience — опыт
+opinion — мнение
+advice — совет
+choice — выбор
+chance — шанс
+risk — риск
+rule — правило
+goal — цель
+step — шаг

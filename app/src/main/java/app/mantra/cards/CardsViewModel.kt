@@ -12,6 +12,9 @@ import app.mantra.cards.data.Grade
 import app.mantra.cards.data.Lookup
 import app.mantra.cards.data.STARTER_WORDS
 import app.mantra.cards.data.Translator
+import app.mantra.cards.data.READY_DECKS
+import app.mantra.cards.data.ReadyDeck
+import app.mantra.cards.data.cleanShared
 import app.mantra.cards.data.Saved
 import app.mantra.cards.data.parseCards
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +25,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 data class Note(val text: String, val undo: (() -> Unit)? = null)
+
+/** A word that came from another app, waiting to become a card. */
+data class Incoming(val text: String, val context: String = "", val id: Long = System.nanoTime())
 
 /** A study session: which decks, the card on screen and how many were answered. */
 data class Session(val deckId: String?, val card: Card?, val answered: Int = 0, val shown: Boolean = false, val last: Pair<Card, Boolean>? = null)
@@ -71,6 +77,33 @@ class CardsViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun addText(deckId: String, text: String): Int = store.addCards(deckId, parseCards(text)).also { note(Note("Добавлено карточек: $it")) }
+
+    // ---- Words from other apps ----
+    private val prefs = application.getSharedPreferences("mantra", android.content.Context.MODE_PRIVATE)
+    private val mIncoming = MutableStateFlow<Incoming?>(null)
+    val incoming = mIncoming.asStateFlow()
+    fun receive(text: String, context: String?): Boolean {
+        val clean = cleanShared(text)
+        if (clean.isEmpty()) return false
+        mIncoming.value = Incoming(clean, context?.replace(Regex("\\s+"), " ")?.trim()?.take(400).orEmpty())
+        return true
+    }
+    fun clearIncoming() { mIncoming.value = null }
+    fun quickDeckId(): String? = prefs.getString("quickDeck", null)
+    fun rememberQuickDeck(id: String) = prefs.edit().putString("quickDeck", id).apply()
+
+    // ---- Ready-made decks ----
+    private fun readyLines(r: ReadyDeck): List<Pair<String, String>> =
+        runCatching { app.assets.open("decks/${r.file}.txt").use { parseCards(it.readBytes().toString(Charsets.UTF_8)) } }.getOrDefault(emptyList())
+    fun readySize(r: ReadyDeck): Int = readyLines(r).size
+    /** Adds a ready deck (or the cards missing from it, if it is already here) and returns it. */
+    fun addReady(r: ReadyDeck): Deck {
+        val deck = state.value.decks.firstOrNull { it.name == r.name }
+            ?: store.saveDeck(Deck("", r.name, r.emoji, r.color, newPerDay = r.newPerDay, language = "EN"))
+        val added = store.addCards(deck.id, readyLines(r))
+        if (added > 0) note(Note("Добавлено карточек: $added"))
+        return deck
+    }
 
     fun starterDeck(): Deck {
         val deck = store.saveDeck(Deck("", "Английский: первые слова", "🇬🇧", 0xFF7CC4FF, newPerDay = 10))

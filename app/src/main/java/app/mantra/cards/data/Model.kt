@@ -19,6 +19,8 @@ data class Deck(
     val language: String = "EN",
     /** "TRANSLATION" — the answer is a Russian translation; "DEFINITION" — an explanation in the language itself. */
     val answer: String = "TRANSLATION",
+    /** Study by typing: the card shows the translation and the word is written by hand. */
+    val typing: Boolean = false,
 ) {
     val lang: Language get() = runCatching { Language.valueOf(language) }.getOrDefault(Language.EN)
     val definitions: Boolean get() = answer == "DEFINITION" && lang != Language.RU

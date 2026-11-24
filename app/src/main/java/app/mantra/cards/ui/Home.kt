@@ -65,16 +65,18 @@ import app.mantra.cards.data.Deck
 import app.mantra.cards.data.Saved
 import app.mantra.cards.data.Scheduler
 import app.mantra.cards.data.plural
+import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 val RU: Locale = Locale.forLanguageTag("ru")
 
-@Composable fun MantraRoot(model: CardsViewModel) {
+@Composable fun MantraRoot(model: CardsViewModel, sharedDone: () -> Unit = {}) {
     val state by model.state.collectAsStateWithLifecycle()
     val session by model.session.collectAsStateWithLifecycle()
     val note by model.note.collectAsStateWithLifecycle()
+    val incoming by model.incoming.collectAsStateWithLifecycle()
     var deckId by rememberSaveable { mutableStateOf<String?>(null) }
     var deckEditor by remember { mutableStateOf<Deck?>(null) }
     val snackbar = remember { SnackbarHostState() }
@@ -88,6 +90,7 @@ val RU: Locale = Locale.forLanguageTag("ru")
     BackHandler(enabled = session != null || deckId != null) { if (session != null) model.endStudy() else deckId = null }
     deckEditor?.let { d -> DeckEditor(d, close = { deckEditor = null }) { saved -> val s = model.saveDeck(saved); deckEditor = null; if (d.id.isBlank()) deckId = s.id } }
 
+    incoming?.let { inc -> androidx.compose.runtime.key(inc.id) { QuickAddSheet(model, state, inc) { added -> model.clearIncoming(); if (added) sharedDone() } } }
     val deck = state.decks.firstOrNull { it.id == deckId }
     Scaffold(containerColor = Ink, snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = {
@@ -112,6 +115,8 @@ val RU: Locale = Locale.forLanguageTag("ru")
     val streak = generateSequence(if ((state.log[today.toString()]?.reviews ?: 0) > 0) today else today.minusDays(1)) { it.minusDays(1) }
         .takeWhile { (state.log[it.toString()]?.reviews ?: 0) > 0 }.take(3650).count()
     var menu by remember { mutableStateOf(false) }
+    var ready by remember { mutableStateOf(false) }
+    if (ready) ReadyDecksSheet(model, state, close = { ready = false }) { ready = false; open(it) }
     val backup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { it?.let(model::backup) }
     val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { it?.let(model::restore) }
 
@@ -122,6 +127,7 @@ val RU: Locale = Locale.forLanguageTag("ru")
                 Box {
                     IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, "Ещё") }
                     DropdownMenu(menu, { menu = false }) {
+                        DropdownMenuItem(text = { Text("Готовые колоды") }, onClick = { menu = false; ready = true })
                         DropdownMenuItem(text = { Text("Сохранить копию в файл") }, onClick = { menu = false; backup.launch("mantra-$today.json") })
                         DropdownMenuItem(text = { Text("Восстановить из файла") }, onClick = { menu = false; restore.launch(arrayOf("application/json", "*/*")) })
                     }
@@ -134,7 +140,11 @@ val RU: Locale = Locale.forLanguageTag("ru")
                 Text("Запоминай навсегда", style = MaterialTheme.typography.titleLarge)
                 Text("Мантра показывает карточку как раз тогда, когда ты начинаешь её забывать. Пара минут в день — и слова, даты, термины остаются в памяти надолго.\n\nСоздай колоду и добавь карточки по одной или списком, например «cat — кошка» на каждой строке.",
                     color = Muted, style = MaterialTheme.typography.bodyMedium)
+                Button(onClick = { ready = true }, colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Ink)) {
+                    Icon(Icons.AutoMirrored.Rounded.LibraryBooks, null); Text("  Готовые колоды")
+                }
                 OutlinedButton(onClick = { open(model.starterDeck()) }) { Text("Попробовать: 50 английских слов") }
+                Text("Совет: выдели слово в любом приложении и выбери «В Мантру» — получится карточка с переводом.", color = Muted, style = MaterialTheme.typography.bodySmall)
             }
         } else {
             item {

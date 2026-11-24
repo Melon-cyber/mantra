@@ -1,0 +1,87 @@
+be · was/were · been — быть
+become · became · become — становиться
+begin · began · begun — начинать
+break · broke · broken — ломать
+bring · brought · brought — приносить
+build · built · built — строить
+buy · bought · bought — покупать
+catch · caught · caught — ловить
+choose · chose · chosen — выбирать
+come · came · come — приходить
+cost · cost · cost — стоить
+cut · cut · cut — резать
+do · did · done — делать
+draw · drew · drawn — рисовать
+dream · dreamt · dreamt — мечтать, видеть сон
+drink · drank · drunk — пить
+drive · drove · driven — водить машину
+eat · ate · eaten — есть
+fall · fell · fallen — падать
+feel · felt · felt — чувствовать
+fight · fought · fought — драться, бороться
+find · found · found — находить
+fly · flew · flown — летать
+forget · forgot · forgotten — забывать
+forgive · forgave · forgiven — прощать
+freeze · froze · frozen — замерзать
+get · got · got — получать
+give · gave · given — давать
+go · went · gone — идти, ехать
+grow · grew · grown — расти
+hang · hung · hung — висеть, вешать
+have · had · had — иметь
+hear · heard · heard — слышать
+hide · hid · hidden — прятать
+hit · hit · hit — ударять
+hold · held · held — держать
+hurt · hurt · hurt — ранить, болеть
+keep · kept · kept — хранить, продолжать
+know · knew · known — знать
+lead · led · led — вести
+learn · learnt · learnt — учить, узнавать
+leave · left · left — уходить, оставлять
+lend · lent · lent — давать взаймы
+let · let · let — позволять
+lie · lay · lain — лежать
+lose · lost · lost — терять
+make · made · made — делать, создавать
+mean · meant · meant — означать
+meet · met · met — встречать
+pay · paid · paid — платить
+put · put · put — класть
+read · read · read — читать
+ride · rode · ridden — ездить верхом
+ring · rang · rung — звонить
+rise · rose · risen — подниматься
+run · ran · run — бежать
+say · said · said — сказать
+see · saw · seen — видеть
+sell · sold · sold — продавать
+send · sent · sent — отправлять
+set · set · set — устанавливать
+shake · shook · shaken — трясти
+shine · shone · shone — светить
+shoot · shot · shot — стрелять
+show · showed · shown — показывать
+shut · shut · shut — закрывать
+sing · sang · sung — петь
+sink · sank · sunk — тонуть
+sit · sat · sat — сидеть
+sleep · slept · slept — спать
+speak · spoke · spoken — говорить
+spend · spent · spent — тратить
+stand · stood · stood — стоять
+steal · stole · stolen — красть
+stick · stuck · stuck — приклеивать, застревать
+swim · swam · swum — плавать
+take · took · taken — брать
+teach · taught · taught — учить (кого-то)
+tear · tore · torn — рвать
+tell · told · told — рассказывать
+think · thought · thought — думать
+throw · threw · thrown — бросать
+understand · understood · understood — понимать
+wake · woke · woken — просыпаться
+wear · wore · worn — носить (одежду)
+win · won · won — выигрывать
+write · wrote · written — писать

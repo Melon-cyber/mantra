@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Mantra mark: two stacked cards, the front one turning, with a repeat arc. 108dp adaptive canvas, safe zone 66dp. -->
+<!-- Mantra: the letter M inside a repeat arrow — spaced repetition.
+     Drawn on a 108-unit square and scaled into the visible middle of the 108dp adaptive canvas. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#7A3D57" android:pathData="M40,30h30a4,4 0,0 1,4 4v34a4,4 0,0 1,-4 4h-30a4,4 0,0 1,-4 -4v-34a4,4 0,0 1,4 -4z" />
-    <path android:fillColor="#FFA8C5" android:pathData="M34,38h30a4,4 0,0 1,4 4v34a4,4 0,0 1,-4 4h-30a4,4 0,0 1,-4 -4v-34a4,4 0,0 1,4 -4z" />
-    <path android:strokeColor="#2A1822" android:strokeWidth="4" android:strokeLineCap="round" android:fillColor="#00000000"
-        android:pathData="M58,52a9,9 0,1 0,-2 9" />
-    <path android:fillColor="#2A1822" android:pathData="M60,46l0,9l-8,-3z" />
+    <group android:scaleX="0.62" android:scaleY="0.62" android:translateX="20.52" android:translateY="20.52">
+        <path android:pathData="M82,48A29,29 0 1 0 74,77"
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFA8C5"
+            android:strokeWidth="6"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path android:pathData="M88,36L84,52L70,44Z"
+            android:fillColor="#FFFFA8C5" />
+        <path android:pathData="M40,68V44L54,58L68,44V68"
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFD6E4"
+            android:strokeWidth="8"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+    </group>
 </vector>

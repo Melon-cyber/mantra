@@ -50,6 +50,16 @@ import app.mantra.cards.data.Grade
 import app.mantra.cards.data.Saved
 import app.mantra.cards.data.Scheduler
 import app.mantra.cards.data.plural
+import app.mantra.cards.data.Typed
+import app.mantra.cards.data.checkTyped
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 
 private val gradeColors = mapOf(Grade.AGAIN to Color(0xFFFF8A80), Grade.HARD to Color(0xFFFFC266), Grade.GOOD to Color(0xFF6EE7A8), Grade.EASY to Color(0xFF7CC4FF))
 
@@ -63,7 +73,11 @@ private val gradeColors = mapOf(Grade.AGAIN to Color(0xFFFF8A80), Grade.HARD to 
     val deck = state.decks.firstOrNull { it.id == (card?.deckId ?: session.deckId) }
     val left = state.decks.filter { session.deckId == null || it.id == session.deckId }.sumOf { d -> model.counts(d).let { it.due + it.fresh + it.learning } }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp)) {
+    val typing = deck?.typing == true
+    var typed by remember(card?.id) { mutableStateOf("") }
+    var verdict by remember(card?.id) { mutableStateOf<Typed?>(null) }
+    val check = { verdict = card?.let { checkTyped(typed, it.front) } ?: Typed.WRONG; model.reveal() }
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding().padding(horizontal = 20.dp)) {
         Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = model::endStudy) { Icon(Icons.Rounded.Close, "Закончить") }
             Text(if (card == null) "" else "${deck?.emoji.orEmpty()} ${deck?.name.orEmpty()} · осталось $left", style = MaterialTheme.typography.labelLarge, color = Muted,
@@ -83,9 +97,19 @@ private val gradeColors = mapOf(Grade.AGAIN to Color(0xFFFF8A80), Grade.HARD to 
         }
         val turn by animateFloatAsState(if (session.shown) 1f else 0f, tween(260), label = "flip")
         Box(Modifier.fillMaxWidth().weight(1f).padding(vertical = 12.dp).graphicsLayer { rotationX = if (turn < .5f) turn * 30f else (1 - turn) * 30f; cameraDistance = 24 * density }
-            .clip(RoundedCornerShape(28.dp)).background(Panel).clickable(enabled = !session.shown) { model.reveal() }.padding(24.dp)) {
+            .clip(RoundedCornerShape(28.dp)).background(Panel).clickable(enabled = !session.shown && !typing) { model.reveal() }.padding(24.dp)) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 if (card.state == CardState.NEW) Text("новая", style = MaterialTheme.typography.labelMedium, color = Color(0xFF7CC4FF))
+                if (typing && !session.shown) {
+                    Text("Напиши слово", style = MaterialTheme.typography.labelMedium, color = Muted, modifier = Modifier.padding(top = 8.dp))
+                    Text(card.back, style = MaterialTheme.typography.headlineSmall.copy(fontSize = if (card.back.length > 60) 20.sp else 26.sp, lineHeight = if (card.back.length > 60) 28.sp else 34.sp),
+                        color = Accent, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
+                    return@Column
+                }
+                if (typing) verdict?.let { v ->
+                    Text(when (v) { Typed.RIGHT -> "✓ Верно"; Typed.ALMOST -> "≈ Почти: «$typed»"; Typed.WRONG -> if (typed.isBlank()) "Не вспомнил — бывает" else "✗ Ты написал: «$typed»" },
+                        style = MaterialTheme.typography.labelLarge, color = when (v) { Typed.RIGHT -> Income; Typed.ALMOST -> Warm; Typed.WRONG -> Expense }, textAlign = TextAlign.Center)
+                }
                 Text(card.front, style = MaterialTheme.typography.headlineSmall.copy(fontSize = if (card.front.length > 60) 20.sp else 28.sp, lineHeight = if (card.front.length > 60) 28.sp else 36.sp),
                     textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
                 IconButton(onClick = { model.say(card.front, deck) }) { Icon(Icons.AutoMirrored.Rounded.VolumeUp, "Произнести", tint = Muted) }
@@ -101,12 +125,24 @@ private val gradeColors = mapOf(Grade.AGAIN to Color(0xFFFF8A80), Grade.HARD to 
                 }
             }
         }
-        if (!session.shown) Button(onClick = model::reveal, colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Ink),
+        if (!session.shown && typing) Column(Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
+            OutlinedTextField(typed, { typed = it }, singleLine = true, placeholder = { Text("Слово на языке колоды") }, modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None, autoCorrectEnabled = false, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { check() }))
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { typed = ""; check() }, modifier = Modifier.weight(1f)) { Text("Не помню") }
+                Button(onClick = check, enabled = typed.isNotBlank(), colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Ink),
+                    modifier = Modifier.weight(2f).height(52.dp)) { Text("Проверить") }
+            }
+        }
+        else if (!session.shown) Button(onClick = model::reveal, colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Ink),
             modifier = Modifier.fillMaxWidth().height(56.dp).padding(bottom = 4.dp)) { Text("Показать ответ") }
         else Row(Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Grade.entries.forEach { g ->
                 val color = gradeColors.getValue(g)
-                Column(Modifier.weight(1f).clip(RoundedCornerShape(16.dp)).background(color.copy(alpha = .16f)).clickable { model.answer(g) }.padding(vertical = 10.dp),
+                // After a typed answer, the fitting grade is outlined as a hint.
+                val hint = typing && when (verdict) { Typed.RIGHT -> g == Grade.GOOD; Typed.ALMOST -> g == Grade.HARD; Typed.WRONG -> g == Grade.AGAIN; null -> false }
+                Column(Modifier.weight(1f).clip(RoundedCornerShape(16.dp)).background(color.copy(alpha = .16f)).then(if (hint) Modifier.border(2.dp, color, RoundedCornerShape(16.dp)) else Modifier).clickable { model.answer(g) }.padding(vertical = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(g.label, style = MaterialTheme.typography.labelLarge, color = color)
                     Text(Scheduler.preview(card, g), style = MaterialTheme.typography.labelSmall, color = Muted)

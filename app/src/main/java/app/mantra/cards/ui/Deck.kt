@@ -272,6 +272,14 @@ import kotlinx.coroutines.launch
                     FilterChip(d.answer == "DEFINITION", { d = d.copy(answer = "DEFINITION") }, label = { Text(if (d.lang == Language.EN) "Английские определения" else "Определения на языке") },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Accent, selectedLabelColor = Ink))
                 }
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Elevated).clickable { d = d.copy(typing = !d.typing) }.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Писать слово самому")
+                        Text(if (d.definitions) "Показываю определение — пишешь слово" else "Показываю перевод — пишешь слово", style = MaterialTheme.typography.bodySmall, color = Muted)
+                    }
+                    androidx.compose.material3.Switch(d.typing, { d = d.copy(typing = it) })
+                }
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Elevated).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("Новых в день", modifier = Modifier.weight(1f))
                     IconButton(onClick = { d = d.copy(newPerDay = (d.newPerDay - 5).coerceAtLeast(0)) }) { Icon(Icons.Rounded.Remove, "Меньше") }
