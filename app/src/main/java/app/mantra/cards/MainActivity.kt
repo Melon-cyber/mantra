@@ -25,6 +25,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun receive(intent: Intent?): Boolean {
+        // The widget's ▶ and the reminder open straight into studying.
+        if (intent?.action == ACTION_STUDY) { model.study(null); return false }
         val text = when (intent?.action) {
             Intent.ACTION_PROCESS_TEXT -> intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
             Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT)
@@ -34,6 +36,7 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
+        const val ACTION_STUDY = "app.mantra.cards.STUDY"
         /** The sentence the word was taken from (Мари sends it), saved as the card's example. */
         const val EXTRA_CONTEXT = "app.mantra.cards.CONTEXT"
     }

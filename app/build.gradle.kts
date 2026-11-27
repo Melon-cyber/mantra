@@ -14,8 +14,8 @@ android {
         applicationId = "app.mantra.cards"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "0.5.1"
+        versionCode = 7
+        versionName = "0.6.0"
     }
     // One signing key for every build, so updates install over the app with its data.
     // keystore.properties (not in Git) points to the key; without it the standard debug key of this computer is used.

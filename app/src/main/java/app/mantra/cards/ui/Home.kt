@@ -69,6 +69,8 @@ import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.ui.platform.LocalContext
+import app.mantra.cards.system.Daily
 
 val RU: Locale = Locale.forLanguageTag("ru")
 
@@ -116,6 +118,11 @@ val RU: Locale = Locale.forLanguageTag("ru")
         .takeWhile { (state.log[it.toString()]?.reviews ?: 0) > 0 }.take(3650).count()
     var menu by remember { mutableStateOf(false) }
     var ready by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    var reminder by remember { mutableStateOf(Daily.setting(context)) }
+    var reminderOpen by remember { mutableStateOf(false) }
+    if (reminderOpen) ReminderDialog(reminder, close = { reminderOpen = false }) { reminder = it; Daily.save(context, it); reminderOpen = false }
+    AskNotifications(reminder.on && state.decks.isNotEmpty())
     if (ready) ReadyDecksSheet(model, state, close = { ready = false }) { ready = false; open(it) }
     val backup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { it?.let(model::backup) }
     val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { it?.let(model::restore) }
@@ -128,6 +135,7 @@ val RU: Locale = Locale.forLanguageTag("ru")
                     IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, "Ещё") }
                     DropdownMenu(menu, { menu = false }) {
                         DropdownMenuItem(text = { Text("Готовые колоды") }, onClick = { menu = false; ready = true })
+                        DropdownMenuItem(text = { Text("Напоминание: " + if (reminder.on) reminder.time else "выключено") }, onClick = { menu = false; reminderOpen = true })
                         DropdownMenuItem(text = { Text("Сохранить копию в файл") }, onClick = { menu = false; backup.launch("mantra-$today.json") })
                         DropdownMenuItem(text = { Text("Восстановить из файла") }, onClick = { menu = false; restore.launch(arrayOf("application/json", "*/*")) })
                     }
